@@ -2,6 +2,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
+
+
+
+
 document.addEventListener("DOMContentLoaded", function () {
   // Inicializa usuários padrão
   if (!localStorage.getItem("usuarios")) {
@@ -249,7 +253,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.addEventListener("DOMContentLoaded", function () {
   const tabelaHorarios = document.querySelector("tbody");
-  const theadHorarios = document.querySelector("thead tr");
   const dataInput = document.querySelector('input[type="date"]');
 
   // Função para carregar horários para a data selecionada
@@ -336,11 +339,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Função para salvar horários para a data selecionada
-  function salvarHorarios(dataSelecionada, horarios) {
-    const horariosPorData = JSON.parse(localStorage.getItem("horariosPorData")) || {};
-    horariosPorData[dataSelecionada] = horarios;
-    localStorage.setItem("horariosPorData", JSON.stringify(horariosPorData));
-  }
 
   // Evento para mudança de data
   if (dataInput) {
@@ -447,11 +445,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Função para salvar horários no painel do administrador
-  function salvarHorariosAdm(dataSelecionada, horarios) {
-    const horariosPorData = JSON.parse(localStorage.getItem("horariosPorData")) || {};
-    horariosPorData[dataSelecionada] = horarios;
-    localStorage.setItem("horariosPorData", JSON.stringify(horariosPorData));
-  }
 
   // Evento para mudança de data no painel do administrador
   if (dataInputAdm) {
@@ -498,3 +491,7 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("Nenhuma data foi selecionada.");
   }
 });
+
+
+
+
