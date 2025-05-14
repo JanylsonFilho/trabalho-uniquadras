@@ -12,6 +12,10 @@ const getUsers = async (req, res) => {
 
 const addUser = async (req, res) => {
   try {
+    const { nome, email, senha, telefone } = req.body;
+    if (!nome || !email || !senha || !telefone) {
+      return res.status(400).json({ error: 'Nome, email, senha e telefone são obrigatórios' });
+    }
     const newUser = await userModel.createUser(req.body);
     res.status(201).json(newUser);
   } catch (error) {
@@ -20,7 +24,20 @@ const addUser = async (req, res) => {
   }
 };
 
+// dando erro
+const promoverUsuario = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const atualizado = await userModel.promoteADM(id);
+    res.json(atualizado);
+  } catch (err) {
+    res.status(500).send('Erro ao promover usuário');
+  }
+};
+
 module.exports = {
   getUsers,
   addUser,
+  promoverUsuario,
 };
