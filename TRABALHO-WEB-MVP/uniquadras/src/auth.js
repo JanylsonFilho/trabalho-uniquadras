@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
  // Cadastro de novos usuários
   const formCadastro = document.getElementById("formCadastro");
   if (formCadastro) {
-    formCadastro.addEventListener("submit", function (e) {
+    formCadastro.addEventListener("submit", async function (e) {
       e.preventDefault();
 
       const nome = document.getElementById("nome").value.trim();
@@ -52,15 +52,25 @@ document.addEventListener("DOMContentLoaded", function () {
         tipo: "usuario"
       };
 
-      const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-      usuarios.push(novoUsuario);
-      localStorage.setItem("usuarios", JSON.stringify(usuarios));
+     
+    try {
+      const response = await fetch("http://localhost:3000/usuarios/cadastro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(novoUsuario),
+      });
 
-      console.log("Usuários cadastrados agora:");
-      console.table(usuarios);
-
-      alert("Cadastro realizado com sucesso!");
-      window.location.href = "login.html";
+      if (response.ok) {
+        alert("Cadastro realizado com sucesso!");
+        window.location.href = "login.html";
+      } else {
+        const error = await response.json();
+        alert(`Erro no cadastro: ${error.message}`);
+      }
+    } catch (err) {
+      console.error("Erro ao cadastrar usuário:", err);
+      alert("Erro ao conectar ao servidor.");
+    }
     });
   }
 
@@ -68,29 +78,41 @@ document.addEventListener("DOMContentLoaded", function () {
  // Login de usuários
   const formLogin = document.getElementById("formLogin");
   if (formLogin) {
-    formLogin.addEventListener("submit", function (e) {
+    formLogin.addEventListener("submit", async function (e) {
       e.preventDefault();
 
       const email = document.getElementById("email").value.trim();
       const senha = document.getElementById("senha").value.trim();
-      const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-
-      const usuarioEncontrado = usuarios.find(
-        (u) => u.email === email && u.senha === senha
-      );
-
-      if (usuarioEncontrado) {
-        localStorage.setItem("usuarioLogado", JSON.stringify(usuarioEncontrado));
-
-        if (usuarioEncontrado.tipo === "adm") {
-          alert(`Bem-vindo, ADM ${usuarioEncontrado.nome}!`);
-          window.location.href = "painel-adm.html";
+      if (!email || !senha) {
+        alert("Por favor, preencha todos os campos!");
+        return;
+      }
+  
+      try {
+        const response = await fetch("http://localhost:3000/usuarios", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, senha }),
+        });
+  
+        if (response.ok) {
+          const usuario = await response.json();
+          localStorage.setItem("usuarioLogado", JSON.stringify(usuario));
+  
+          if (usuario.tipo === "adm") {
+            alert(`Bem-vindo, ADM ${usuario.nome}!`);
+            window.location.href = "painel-adm.html";
+          } else {
+            alert(`Bem-vindo ao sistema de reservas, ${usuario.nome}!`);
+            window.location.href = "horarios-disponiveis.html";
+          }
         } else {
-          alert(`Bem-vindo ao sistema de reservas, ${usuarioEncontrado.nome}!`);
-          window.location.href = "horarios-disponiveis.html";
+          const error = await response.json();
+          alert(`Erro no login: ${error.message}`);
         }
-      } else {
-        alert("Email ou senha inválidos. Tente novamente!");
+      } catch (err) {
+        console.error("Erro ao fazer login:", err);
+        alert("Erro ao conectar ao servidor.");
       }
     });
   }
