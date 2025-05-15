@@ -7,7 +7,7 @@ const getAllUsers = async () => {
 };
 
 const createUser = async (userData) => {
-  const { nome, email, senha, telefone} = userData;
+  const { nome, email, senha, telefone } = userData;
   const saltRounds = 10;
   const senhaCriptografada = await bcrypt.hash(senha, saltRounds);
   const dataCadastro = new Date();

@@ -1,216 +1,112 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap';
-import 'bootstrap-icons/font/bootstrap-icons.css';
 
+  const tipoQuadraSelect = document.getElementById('tipoQuadra');
+  const esporteSelect = document.getElementById('esporte');
+  const quadraSelect = document.getElementById('quadra');
+  const dataInput = document.getElementById('data');
+  const horarioSelect = document.getElementById('horario');
 
+  const quadrasPorTipo = {
+    Aberta: ["Quadra Areia 1", "Quadra Areia 2", "Quadra Externa"],
+    Fechada: ["Ginásio A", "Ginásio B", "Quadra Interna"]
+  };
 
-document.addEventListener("DOMContentLoaded", function () {
+  const esportesPorQuadra = {
+    Aberta: ["Futevôlei", "Beach Tênis", "Vôlei de Praia"],
+    Fechada: ["Futsal", "Basquete", "Vôlei", "Handball"]
+  };
 
-     // Página de horários (Usuário Reserva)
-  const tabelaHorarios = document.querySelector("tbody");
-  const theadHorarios = document.querySelector("thead tr");
+  tipoQuadraSelect.addEventListener('change', () => {
+    const tipoSelecionado = tipoQuadraSelect.value;
 
-  if (tabelaHorarios && theadHorarios) {
-    const horariosPadrao = JSON.parse(localStorage.getItem("horariosPadrao")) || [
-      "17-18", "18-19", "19-20", "20-21", "21-22"
-    ];
-
-    // Atualiza cabeçalho de horários
-    let theadContent = `<th>Quadra</th>`;
-    horariosPadrao.forEach(horario => {
-      theadContent += `<th>${horario}</th>`;
-    });
-    theadHorarios.innerHTML = theadContent;
-
-    // Atualiza corpo da tabela
-    const horarios = JSON.parse(localStorage.getItem("horarios")) || [];
-    tabelaHorarios.innerHTML = "";
-
-    horarios.forEach((quadra, indexQuadra) => {
-      let row = `<tr><th>${quadra.quadra}</th>`;
-
-      quadra.horarios.forEach((status, indexHorario) => {
-        const btnClass = status === "Disponível" ? "btn-disponivel" : "btn-indisponivel";
-        row += `<td>
-          <button class="btn ${btnClass} w-100" data-quadra="${indexQuadra}" data-horario="${indexHorario}">
-            ${status}
-          </button>
-        </td>`;
+        // Atualiza quadras
+    quadraSelect.innerHTML = '<option value="">Selecione</option>';
+    if (quadrasPorTipo[tipoSelecionado]) {
+      quadrasPorTipo[tipoSelecionado].forEach(quadra => {
+        const option = document.createElement('option');
+        option.value = quadra;
+        option.textContent = quadra;
+        quadraSelect.appendChild(option);
       });
-
-      row += `</tr>`;
-      tabelaHorarios.innerHTML += row;
-    });
-
-    // Adiciona eventos aos botões
-    document.querySelectorAll("button[data-quadra]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-        const quadraIdx = btn.getAttribute("data-quadra");
-        const horarioIdx = btn.getAttribute("data-horario");
-        const dataSelecionada = document.querySelector('input[type="date"]').value;
-        const horariosPorData = JSON.parse(localStorage.getItem("horariosPorData")) || {};
-        const horarios = horariosPorData[dataSelecionada];
-    
-        // Se não houver usuário logado, impede
-        if (!usuarioLogado) {
-          alert("Você precisa estar logado para fazer uma reserva.");
-          return;
-        }
-    
-        // Se for usuário comum
-        if (usuarioLogado.tipo !== "adm") {
-          if (horarios[quadraIdx].horarios[horarioIdx] !== "Disponível") {
-            alert("Esse horário já está indisponível.");
-            return;
-          }
-    
-          // Reserva válida
-          horarios[quadraIdx].horarios[horarioIdx] = "Indisponível";
-          horariosPorData[dataSelecionada] = horarios;
-          localStorage.setItem("horariosPorData", JSON.stringify(horariosPorData));
-    
-          alert("Reserva feita com sucesso!");
-          btn.textContent = "Indisponível";
-          btn.classList.remove("btn-disponivel");
-          btn.classList.add("btn-indisponivel");
-          btn.setAttribute("disabled", "true");
-    
-        } else {
-          // ADMIN pode alternar livremente
-          const atual = horarios[quadraIdx].horarios[horarioIdx];
-          const novo = atual === "Disponível" ? "Indisponível" : "Disponível";
-          horarios[quadraIdx].horarios[horarioIdx] = novo;
-          horariosPorData[dataSelecionada] = horarios;
-          localStorage.setItem("horariosPorData", JSON.stringify(horariosPorData));
-    
-          btn.textContent = novo;
-          btn.classList.toggle("btn-disponivel", novo === "Disponível");
-          btn.classList.toggle("btn-indisponivel", novo === "Indisponível");
-    
-          if (novo === "Disponível") {
-            btn.removeAttribute("disabled");
-          } else {
-            btn.setAttribute("disabled", "true");
-          }
-        }
-      });
-    });
-    
-  }    
-
-
-
-
-
-
-
-  // Controle pela data 
-
-document.addEventListener("DOMContentLoaded", function () {
-    const tabelaHorarios = document.querySelector("tbody");
-    const dataInput = document.querySelector('input[type="date"]');
-  
-    // Função para carregar horários para a data selecionada
-    function carregarHorarios(dataSelecionada) {
-      const horariosPorData = JSON.parse(localStorage.getItem("horariosPorData")) || {};
-      const horarios = horariosPorData[dataSelecionada] || [
-        { quadra: "QUADRA 1", horarios: ["Disponível", "Disponível", "Disponível", "Disponível", "Disponível"] },
-        { quadra: "QUADRA 2", horarios: ["Disponível", "Disponível", "Disponível", "Disponível", "Disponível"] },
-        { quadra: "QUADRA 3", horarios: ["Disponível", "Disponível", "Disponível", "Disponível", "Disponível"] }
-      ];
-  
-      // Atualiza corpo da tabela
-      tabelaHorarios.innerHTML = "";
-      horarios.forEach((quadra, indexQuadra) => {
-        let row = `<tr><th>${quadra.quadra}</th>`;
-        quadra.horarios.forEach((status, indexHorario) => {
-          const btnClass = status === "Disponível" ? "btn-disponivel" : "btn-indisponivel";
-          
-          row += `<td>
-            <button class="btn ${btnClass} w-100" data-quadra="${indexQuadra}" data-horario="${indexHorario}">
-              ${status}
-            </button>
-          </td>`;
-        });
-        row += `</tr>`;
-        tabelaHorarios.innerHTML += row;
-      });
-  
-      // Adiciona eventos aos botões
-      document.querySelectorAll("button[data-quadra]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-          const quadraIdx = btn.getAttribute("data-quadra");
-          const horarioIdx = btn.getAttribute("data-horario");
-          const dataSelecionada = document.querySelector('input[type="date"]').value;
-          const horariosPorData = JSON.parse(localStorage.getItem("horariosPorData")) || {};
-          const horarios = horariosPorData[dataSelecionada];
-      
-          // Se não houver usuário logado, impede
-          if (!usuarioLogado) {
-            alert("Você precisa estar logado para fazer uma reserva.");
-            return;
-          }
-      
-          // Se for usuário comum
-          if (usuarioLogado.tipo !== "adm") {
-            if (horarios[quadraIdx].horarios[horarioIdx] !== "Disponível") {
-              alert("Esse horário já está indisponível.");
-              return;
-            }
-      
-            // Reserva válida
-            horarios[quadraIdx].horarios[horarioIdx] = "Indisponível";
-            horariosPorData[dataSelecionada] = horarios;
-            localStorage.setItem("horariosPorData", JSON.stringify(horariosPorData));
-      
-            alert("Reserva feita com sucesso!");
-            btn.textContent = "Indisponível";
-            btn.classList.remove("btn-disponivel");
-            btn.classList.add("btn-indisponivel");
-            btn.setAttribute("disabled", "true");
-      
-          } else {
-            // ADMIN pode alternar livremente
-            const atual = horarios[quadraIdx].horarios[horarioIdx];
-            const novo = atual === "Disponível" ? "Indisponível" : "Disponível";
-            horarios[quadraIdx].horarios[horarioIdx] = novo;
-            horariosPorData[dataSelecionada] = horarios;
-            localStorage.setItem("horariosPorData", JSON.stringify(horariosPorData));
-      
-            btn.textContent = novo;
-            btn.classList.toggle("btn-disponivel", novo === "Disponível");
-            btn.classList.toggle("btn-indisponivel", novo === "Indisponível");
-      
-            if (novo === "Disponível") {
-              btn.removeAttribute("disabled");
-            } else {
-              btn.setAttribute("disabled", "true");
-            }
-          }
-        });
-      });
-      
+    } else {
+      quadraSelect.innerHTML = '<option value="">Nenhuma quadra disponível</option>';
     }
-  
-    // Função para salvar horários para a data selecionada
-  
-    // Evento para mudança de data
-    if (dataInput) {
-      dataInput.addEventListener("change", () => {
-        const dataSelecionada = dataInput.value;
-        if (dataSelecionada) {
-          carregarHorarios(dataSelecionada);
-        }
+
+        // Atualiza esportes
+      esporteSelect.innerHTML = '<option value="">Selecione</option>';
+      if (esportesPorQuadra[tipoSelecionado]) {
+        esportesPorQuadra[tipoSelecionado].forEach(esporte => {
+          const option = document.createElement('option');
+          option.value = esporte;
+          option.textContent = esporte;
+          esporteSelect.appendChild(option);
+        });
+      }
+    });
+
+    // Limpa opções anteriores
+    esporteSelect.innerHTML = '<option value="">Selecione</option>';
+
+    if (esportesPorQuadra[tipoSelecionado]) {
+      esportesPorQuadra[tipoSelecionado].forEach(esporte => {
+        const option = document.createElement('option');
+        option.value = esporte;
+        option.textContent = esporte;
+        esporteSelect.appendChild(option);
       });
-  
-      // Carrega os horários para a data atual ao carregar a página
-      const dataAtual = new Date().toISOString().split("T")[0];
-      dataInput.value = dataAtual;
-      carregarHorarios(dataAtual);
     }
-  });
 
 
+function atualizarHorariosDisponiveis() {
+  const dataSelecionada = dataInput.value;
+  const quadraSelecionada = quadraSelect.value;
+
+  if (!dataSelecionada || !quadraSelecionada) {
+    horarioSelect.innerHTML = '<option value="">Selecione a data e a quadra primeiro</option>';
+    return;
+  }
+
+  // Aqui você faria uma requisição ao backend para obter os horários disponíveis
+  // Exemplo de requisição usando fetch:
+  fetch(`/api/horarios-disponiveis?data=${dataSelecionada}&quadra=${encodeURIComponent(quadraSelecionada)}`)
+    .then(response => response.json())
+    .then(horarios => {
+      horarioSelect.innerHTML = '<option value="">Selecione</option>';
+      horarios.forEach(horario => {
+        const option = document.createElement('option');
+        option.value = horario;
+        option.textContent = horario;
+        horarioSelect.appendChild(option);
+      });
+    })
+    .catch(error => {
+      console.error('Erro ao obter horários disponíveis:', error);
+      horarioSelect.innerHTML = '<option value="">Erro ao carregar horários</option>';
+    });
+}
+
+dataInput.addEventListener('change', atualizarHorariosDisponiveis);
+quadraSelect.addEventListener('change', atualizarHorariosDisponiveis);
+
+  // Validação final + mensagem
+document.getElementById('reservaForm').addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  const tipoQuadra = document.getElementById('tipoQuadra').value;
+  const quadra = quadraSelect.value;
+  const esporte = document.getElementById('esporte').value;
+  const data = dataInput.value;
+  const horario = horarioSelect.value;
+
+  if (!tipoQuadra || !quadra || !esporte || !data || !horario) {
+    alert('Por favor, preencha todos os campos!');
+    return;
+  }
+
+  alert(`✅ Reserva confirmada!
+🟢 Tipo de Quadra: ${tipoQuadra}
+🏟️ Quadra: ${quadra}
+🏅 Esporte: ${esporte}
+📅 Data: ${data}
+⏰ Horário: ${horario}`);
 });
+

@@ -3,69 +3,93 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
-
 document.addEventListener("DOMContentLoaded", function () {
+  const apiBaseUrl = "http://localhost:3000/api/quadras";
 
-    
-  // Inicializa horários padrão
-  if (!localStorage.getItem("horarios")) {
-    const horariosDefault = [
-      { quadra: "QUADRA 1", horarios: ["Disponível", "Indisponível", "Indisponível", "Indisponível", "Indisponível"] },
-      { quadra: "QUADRA 2", horarios: ["Disponível", "Disponível", "Disponível", "Indisponível", "Indisponível"] },
-      { quadra: "QUADRA 3", horarios: ["Disponível", "Disponível", "Disponível", "Disponível", "Indisponível"] }
-    ];
-    localStorage.setItem("horarios", JSON.stringify(horariosDefault));
+  // Função para listar quadras
+  async function listarQuadras() {
+    try {
+      const response = await fetch(apiBaseUrl);
+      const quadras = await response.json();
+
+      const quadrasContainer = document.getElementById("quadrasContainer");
+      if (quadrasContainer) {
+        quadrasContainer.innerHTML = ""; // Limpa o container
+        quadras.forEach((quadra) => {
+          const quadraElement = document.createElement("div");
+          quadraElement.className = "quadra-item";
+          quadraElement.innerHTML = `
+            <h3>${quadra.nome}</h3>
+            <p>Localização: ${quadra.localizacao}</p>
+            <p>Tipo: ${quadra.tipo}</p>
+            <button class="btn-delete" data-id="${quadra.id}">Deletar</button>
+          `;
+          quadrasContainer.appendChild(quadraElement);
+        });
+
+        // Adiciona eventos de deletar
+        document.querySelectorAll(".btn-delete").forEach((button) => {
+          button.addEventListener("click", async (e) => {
+            const id = e.target.getAttribute("data-id");
+            await deletarQuadra(id);
+            listarQuadras(); // Atualiza a lista
+          });
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao listar quadras:", error);
+    }
   }
 
-
-   // Seleção de tipo de quadra
-   const btnConfirmar = document.querySelector(".btn-confirmar");
-   const radios = document.getElementsByName("tipo_quadra");
- 
-   if (btnConfirmar) {
-     btnConfirmar.addEventListener("click", function () {
-       let tipoSelecionado = "";
-       radios.forEach((radio) => {
-         if (radio.checked) {
-           tipoSelecionado = radio.value;
-         }
-       });
- 
-       if (tipoSelecionado === "aberta") {
-         window.location.href = "/esportes-abertos.html";
-       } else if (tipoSelecionado === "coberta") {
-         window.location.href = "/esportes-fechados.html";
-       } else {
-         alert("Selecione o tipo de quadra para continuar.");
-       }
-     });
-   }
- 
-   // Escolha de esporte
-   const botoesEsporte = document.querySelectorAll(".btn.btn-primary");
-   if (botoesEsporte.length > 0) {
-     botoesEsporte.forEach((botao) => {
-       botao.addEventListener("click", () => {
-         const esporteSelecionado = botao.textContent.trim();
-         localStorage.setItem("esporteSelecionado", esporteSelecionado);
-         console.log("Esporte selecionado:", esporteSelecionado);
-         window.location.href = "horarios-disponiveis.html";
-       });
-     });
-   }
- 
-   // Info do esporte na tela
-  const esporteSpan = document.getElementById("esporteSelecionado");
-  if (esporteSpan) {
-    const esporte = localStorage.getItem("esporteSelecionado");
-    esporteSpan.textContent = esporte || "Não selecionado";
+  // Função para criar uma nova quadra
+  async function criarQuadra(data) {
+    try {
+      const response = await fetch(apiBaseUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (response.ok) {
+        alert("Quadra criada com sucesso!");
+        listarQuadras(); // Atualiza a lista
+      } else {
+        alert("Erro ao criar quadra.");
+      }
+    } catch (error) {
+      console.error("Erro ao criar quadra:", error);
+    }
   }
 
-  const loginBtn = document.getElementById("btn-login");
-  if (loginBtn) {
-    loginBtn.addEventListener("click", () => {
-      window.location.href = "/login.html";
+  // Função para deletar uma quadra
+  async function deletarQuadra(id) {
+    try {
+      const response = await fetch(`${apiBaseUrl}/${id}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        alert("Quadra deletada com sucesso!");
+      } else {
+        alert("Erro ao deletar quadra.");
+      }
+    } catch (error) {
+      console.error("Erro ao deletar quadra:", error);
+    }
+  }
+
+  // Adiciona evento ao formulário de criação
+  const formCriarQuadra = document.getElementById("formCriarQuadra");
+  if (formCriarQuadra) {
+    formCriarQuadra.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById("nome").value;
+      const localizacao = document.getElementById("localizacao").value;
+      const tipo = document.getElementById("tipo").value;
+
+      const novaQuadra = { nome, localizacao, tipo };
+      await criarQuadra(novaQuadra);
     });
   }
 
+  // Inicializa a listagem de quadras
+  listarQuadras();
 });

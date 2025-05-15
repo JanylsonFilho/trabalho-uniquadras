@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "pg": "^8.16.0",
-    "pg-hstore": "^2.3.4"
-  }
-}

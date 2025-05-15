@@ -12,9 +12,9 @@ const getUsers = async (req, res) => {
 
 const addUser = async (req, res) => {
   try {
-    const { nome, email, senha, telefone } = req.body;
-    if (!nome || !email || !senha || !telefone) {
-      return res.status(400).json({ error: 'Nome, email, senha e telefone são obrigatórios' });
+    const { nome, email, senha } = req.body;
+    if (!nome || !email || !senha) {
+      return res.status(400).json({ error: 'Nome, email e senha são obrigatórios' });
     }
     const newUser = await userModel.createUser(req.body);
     res.status(201).json(newUser);
@@ -24,7 +24,7 @@ const addUser = async (req, res) => {
   }
 };
 
-// dando erro
+ // dando erro
 const promoverUsuario = async (req, res) => {
   const { id } = req.params;
 
