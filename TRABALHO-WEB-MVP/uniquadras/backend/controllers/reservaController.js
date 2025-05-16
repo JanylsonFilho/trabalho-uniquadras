@@ -54,6 +54,18 @@ const reservaController = {
       res.status(500).json({ error: 'Erro ao deletar reserva.' });
     }
   },
+
+ 
+  async listarPorUsuario(req, res) {
+    try {
+      const reservas = await Reserva.getByUsuarioId(req.params.id);
+      res.json(reservas);
+    } catch (error) {
+      res.status(500).json({ error: 'Erro ao listar reservas do usuário.' });
+    }
+  },
+
 };
+
 
 module.exports = reservaController;

@@ -4,7 +4,7 @@ import 'bootstrap';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 document.addEventListener("DOMContentLoaded", function () {
-  const apiBaseUrl = "http://localhost:3000/api/quadras";
+  const apiBaseUrl = "http://localhost:3000/quadras";
 
   // Função para listar quadras
   async function listarQuadras() {

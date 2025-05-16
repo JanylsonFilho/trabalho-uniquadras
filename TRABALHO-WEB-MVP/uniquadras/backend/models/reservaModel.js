@@ -33,6 +33,12 @@ const Reserva = {
     const result = await pool.query('DELETE FROM reservas WHERE id = $1 RETURNING *', [id]);
     return result.rows[0];
   },
+    // models/reservaModel.js
+  async getByUsuarioId(id_usuario) {
+    const result = await pool.query('SELECT * FROM reservas WHERE id_usuario = $1', [id_usuario]);
+    return result.rows;
+  }
+
 };
 
 module.exports = Reserva;
