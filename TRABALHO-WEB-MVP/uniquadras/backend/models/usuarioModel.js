@@ -1,3 +1,4 @@
+
 const pool = require('../config/db');
 const bcrypt = require('bcrypt');
 
@@ -7,7 +8,7 @@ const getAllUsers = async () => {
 };
 
 const createUser = async (userData) => {
-  const { nome, email, senha, telefone } = userData;
+  const { nome, email, senha, telefone} = userData;
   const saltRounds = 10;
   const senhaCriptografada = await bcrypt.hash(senha, saltRounds);
   const dataCadastro = new Date();
@@ -20,10 +21,18 @@ const createUser = async (userData) => {
   return result.rows[0];
 };
 
-const promoteADM = async (idUsuario) => {
-  const result = await db.query(
+const promoteADM = async (id) => {
+  const result = await pool.query(
     'UPDATE usuarios SET id_tipo_usuario = $1 WHERE id = $2 RETURNING *',
-    [2, idUsuario]
+    [2, id]
+  );
+  return result.rows[0];
+};
+
+const demoteADM = async (id) => {
+  const result = await pool.query(
+    'UPDATE usuarios SET id_tipo_usuario = $1 WHERE id = $2 RETURNING *',
+    [1, id]
   );
   return result.rows[0];
 };
@@ -32,4 +41,5 @@ module.exports = {
   getAllUsers,
   createUser,
   promoteADM,
+  demoteADM,
 };

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Seleção de Esporte - Quadra Aberta</title>
+
+
+  <link rel="stylesheet" href="src/style.css" />
+  
+</head>
+<body class="bg-azul-marinho text-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="assets/logo-unifor.png" alt="Logo Unifor" height="40">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="quemsomos.html">Quem Somos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="estrutura.html">Estrutura</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contato.html">Contato</a></li>
+                    <li class="nav-item"><a class="nav-link" href="reservas.html">Reservas</a></li> <!-- Novo item -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+
+  <section class="py-5 d-flex justify-content-center align-items-center">
+    <div class="bg-light text-dark rounded p-5" style="width: 300px;">
+      <h4 class="text-center mb-4">Selecione um esporte:</h4>
+      <div class="d-grid gap-3">
+        <button class="btn btn-primary" id="btn-beach-tenis">Beach Tênis</button>
+        <button class="btn btn-primary" id="btn-futvolei">FutVôlei</button>
+        <button class="btn btn-primary" id="btn-volei-praia">Vôlei de Praia</button>
+      </div>
+    </div>
+  </section>
+  <!-- FOOTER -->
+ 
+  <footer class="footer">
+    <div class="container footer-top">
+        <div class="footer-col">
+            <img src="assets/logo-unifor.png" alt="Logo Unifor" class="footer-logo">
+        </div>
+
+        <div class="footer-col">
+            <h5>Menu</h5>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/quemsomos.html">Quem Somos</a></li>
+                <li><a href="/estrutura.html">Estrutura</a></li>
+                <li><a href="/contato.html">Contato</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-col">
+            <h5>Nos encontre</h5>
+            <p>Av. Washington Soares, 1321 - Edson Queiroz, Fortaleza - CE</p>
+            <p>Parque Desportivo da Unifor</p>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <p>© 2025 - Todos os direitos reservados</p>
+    </div>
+</footer>
+
+    <script type="module" src="/src/auth.js"></script>
+    <script type="module" src="/src/admin.js"></script>
+    <script type="module" src="/src/reservas.js"></script>
+    <script type="module" src="/src/quadras.js"></script>
+</body>
+</html>
