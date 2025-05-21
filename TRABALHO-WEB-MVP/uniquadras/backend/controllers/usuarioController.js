@@ -1,5 +1,7 @@
 
 const userModel = require('../models/usuarioModel');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 const getUsers = async (req, res) => {
   try {
@@ -7,6 +9,36 @@ const getUsers = async (req, res) => {
     res.json(users);
   } catch (error) {
     console.error('Erro ao buscar usuários:', error);
+    res.status(500).send('Erro no servidor');
+  }
+};
+
+const login = async (req, res) => {
+  const { email, senha } = req.body;
+  if (!email || !senha) {
+    return res.status(400).json({ error: 'Email e senha são obrigatórios' });
+  }
+
+  try {
+    const user = await userModel.getByEmail(email);
+    if (!user) {
+      return res.status(401).json({ error: 'Credenciais inválidas' });
+    }
+
+    const senhaValida = await bcrypt.compare(senha, user.senha);
+    if (!senhaValida) {
+      return res.status(401).json({ error: 'Credenciais inválidas' });
+    }
+
+    // Gera um token JWT (payload mínimo: id e email)
+    const payload = { id: user.id, email: user.email };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '2h' });
+
+    // Não envie a senha de volta
+    const { senha: _, ...userSemSenha } = user;
+    res.json({ user: userSemSenha, token });
+  } catch (err) {
+    console.error('Erro no login:', err);
     res.status(500).send('Erro no servidor');
   }
 };
@@ -60,6 +92,7 @@ const rebaixarUsuario = async (req, res) => {
 
 module.exports = {
   getUsers,
+  login,
   addUser,
   promoverUsuario,
   rebaixarUsuario,

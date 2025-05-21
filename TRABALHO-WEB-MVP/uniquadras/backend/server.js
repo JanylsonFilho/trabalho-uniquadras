@@ -1,9 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+//app.use(express.static('backend'));
 
 const app = express();
 const port = process.env.PORT || 3000;
+app.use(express.static('backend'));
 
 app.use(cors());
 app.use(express.json());

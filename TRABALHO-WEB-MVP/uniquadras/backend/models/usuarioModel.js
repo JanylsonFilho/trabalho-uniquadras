@@ -7,6 +7,14 @@ const getAllUsers = async () => {
   return result.rows;
 };
 
+const getByEmail = async (email) => {
+  const result = await pool.query(
+    'SELECT * FROM usuarios WHERE email = $1',
+    [email]
+  );
+  return result.rows[0];
+};
+
 const createUser = async (userData) => {
   const { nome, email, senha, telefone} = userData;
   const saltRounds = 10;
@@ -39,6 +47,7 @@ const demoteADM = async (id) => {
 
 module.exports = {
   getAllUsers,
+  getByEmail,
   createUser,
   promoteADM,
   demoteADM,
