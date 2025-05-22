@@ -13,14 +13,14 @@ document.addEventListener("DOMContentLoaded", function () {
             email: "adm@unifor.br",
             telefone: "(85) 99999-9999",
             senha: "adm123",
-            tipo: "adm"
+            tipo: 2
         },
         {
             nome: "João Silva",
             email: "joao@unifor.br",
             telefone: "(85) 98888-7777",
             senha: "joao123",
-            tipo: "usuario"
+            tipo: 1
         }
         ];
         localStorage.setItem("usuarios", JSON.stringify(usuariosDefault));
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
         email,
         telefone,
         senha,
-        tipo: "usuario"
+        tipo: 1
       };
 
      
@@ -101,6 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
           // Armazena no localStorage
           localStorage.setItem("usuarioLogado", JSON.stringify({ user, token }));
+         
 
           // Decide pela role com base em id_tipo_usuario
           if (user.id_tipo_usuario === 2) {

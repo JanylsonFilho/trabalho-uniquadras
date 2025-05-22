@@ -12,19 +12,19 @@ const Quadra = {
   },
 
   async create(data) {
-    const { nome, localizacao, tipo } = data;
+    const { nome, tipo, status } = data;
     const result = await pool.query(
-      'INSERT INTO quadras (nome, localizacao, tipo) VALUES ($1, $2, $3) RETURNING *',
-      [nome, localizacao, tipo]
+      'INSERT INTO quadras (nome, tipo, status) VALUES ($1, $2, $3) RETURNING *',
+      [nome, tipo, status]
     );
     return result.rows[0];
   },
 
   async update(id, data) {
-    const { nome, localizacao, tipo } = data;
+    const { nome, tipo, status } = data;
     const result = await pool.query(
-      'UPDATE quadras SET nome = $1, localizacao = $2, tipo = $3 WHERE id = $4 RETURNING *',
-      [nome, localizacao, tipo, id]
+      'UPDATE quadras SET nome = $1, tipo = $2, status = $3 WHERE id = $4 RETURNING *',
+      [nome, tipo, status, id]
     );
     return result.rows[0];
   },
