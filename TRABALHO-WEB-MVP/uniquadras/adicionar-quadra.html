@@ -43,12 +43,31 @@
       <h2 class="text-white mb-5 fs-1 text-center fw-bold">Adicionar Nova Quadra</h2>
       <div class="bg-primary bg-opacity-75 text-white px-5 py-5 rounded-4 mx-auto" style="max-width: 800px; font-size: 1.3rem; line-height: 1.9;">
         
+       <!-- adicionar-quadra.html (trecho do formulário) -->
         <form id="formNovaQuadra">
           <div class="mb-4">
             <label for="nomeQuadra" class="form-label fw-bold">Nome da nova quadra:</label>
             <input type="text" id="nomeQuadra" class="form-control border border-info" placeholder="Ex: Quadra 4" required>
           </div>
-
+          <div class="mb-4">
+            <label for="tipoQuadra" class="form-label fw-bold">Tipo da quadra:</label>
+            <select id="tipoQuadra" class="form-control border border-info" required>
+              <option value="Aberta">Aberta</option>
+              <option value="Fechada">Fechada</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label for="statusQuadra" class="form-label fw-bold">Status da quadra:</label>
+            <select id="statusQuadra" class="form-control border border-info" required>
+              <option value="Ativa">Ativa</option>
+              <option value="Inativa">Inativa</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-bold">Horários padrão disponíveis:</label>
+            <div id="horariosPadrao" class="mb-2"></div>
+            <!-- Apenas exibição, não envia para o backend -->
+          </div>
           <div class="text-center">
             <button type="submit" class="btn btn-warning px-5 fw-bold mt-4">Adicionar Quadra</button>
           </div>
@@ -89,61 +108,7 @@
 
   
     <!-- SCRIPT -->
-    <script type="module">
-      document.addEventListener("DOMContentLoaded", function () {
-        const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-        if (!usuarioLogado || usuarioLogado.tipo !== "adm") {
-          alert("Acesso negado. Área restrita ao administrador.");
-          window.location.href = "login.html";
-        }
-
-        const form = document.getElementById("formNovaQuadra");
-
-        form.addEventListener("submit", function (e) {
-          e.preventDefault();
-
-          const nomeQuadra = document.getElementById("nomeQuadra").value.trim();
-          if (!nomeQuadra) {
-            alert("Por favor, insira o nome da quadra!");
-            return;
-          }
-
-          const dataSelecionada = localStorage.getItem("dataSelecionada");
-          if (!dataSelecionada) {
-            alert("Nenhuma data foi selecionada. Retorne ao painel do administrador.");
-            return;
-          }
-
-          const horariosPorData = JSON.parse(localStorage.getItem("horariosPorData")) || {};
-          const horariosDaData = horariosPorData[dataSelecionada] || [];
-
-          const jaExiste = horariosDaData.some(q => q.quadra.toLowerCase() === nomeQuadra.toLowerCase());
-          if (jaExiste) {
-            alert("Essa quadra já está cadastrada para essa data!");
-            return;
-          }
-
-          horariosDaData.push({
-            quadra: nomeQuadra,
-            horarios: ["Disponível", "Disponível", "Disponível", "Disponível", "Disponível"]
-          });
-
-          horariosPorData[dataSelecionada] = horariosDaData;
-          localStorage.setItem("horariosPorData", JSON.stringify(horariosPorData));
-
-          alert("Nova quadra adicionada com sucesso para a data " + dataSelecionada + "!");
-          window.location.href = "painel-adm.html";
-        });
-
-        // Verifica se a data está disponível no carregamento da página
-        const dataSelecionada = localStorage.getItem("dataSelecionada");
-        if (dataSelecionada) {
-          console.log("Data selecionada:", dataSelecionada);
-        } else {
-          alert("Nenhuma data foi selecionada. Retorne ao painel do administrador para selecionar uma data.");
-        }
-      });
-    </script>
+  <script type="module" src="/src/quadras.js"></script>
 
 
 </body>
