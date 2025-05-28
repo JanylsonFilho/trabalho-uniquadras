@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
          
 
           // Decide pela role com base em id_tipo_usuario
-          if (user.id_tipo_usuario === 2) {
+          if (user.id_tipo_usuario === "2") {
             alert(`Bem‑vindo, ADM ${user.nome}!`);
             window.location.href = "painel-adm.html";
           } else {
