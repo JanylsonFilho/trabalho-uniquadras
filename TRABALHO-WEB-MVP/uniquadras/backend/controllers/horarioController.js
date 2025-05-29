@@ -1,54 +1,66 @@
 const Horario = require('../models/horarioModel');
 
-// Lista horários por quadra e data, sempre retorna um array puro
-exports.listarPorQuadraEData = (req, res) => {
+// Lista horários por quadra e data
+exports.listarPorQuadraEData = async (req, res) => {
   const { id_quadra, data } = req.query;
-  Horario.getAllByQuadraAndData(id_quadra, data, (err, resultados) => {
-    if (err) return res.status(500).json({ error: err.message || err });
-    // Sempre retorna um array puro, independente do banco
-    if (resultados && Array.isArray(resultados)) {
-      res.json(resultados);
-    } else if (resultados && resultados.rows) {
-      res.json(resultados.rows);
-    } else {
-      res.json([]);
-    }
-  });
+  try {
+    const resultados = await Horario.getAllByQuadraAndData(id_quadra, data);
+    res.json(resultados);
+  } catch (err) {
+    console.error('Erro ao listar horários:', err);
+    res.status(500).json({ error: err.message || 'Erro ao listar horários.' });
+  }
 };
 
-exports.criar = (req, res) => {
-  Horario.create(req.body, (err, resultado) => {
-    if (err) return res.status(500).json({ error: err.message || err });
-    // Para PostgreSQL, resultado.rows[0] é o novo horário
-    if (resultado && resultado.rows && resultado.rows[0]) {
-      res.status(201).json(resultado.rows[0]);
-    } else {
-      res.status(201).json(resultado);
-    }
-  });
+exports.criar = async (req, res) => {
+  try {
+    const novoHorario = await Horario.create(req.body);
+    res.status(201).json(novoHorario);
+  } catch (err) {
+    console.error('Erro ao criar horário:', err);
+    res.status(500).json({ error: err.message || 'Erro ao criar horário.' });
+  }
 };
 
-exports.atualizar = (req, res) => {
+exports.atualizar = async (req, res) => {
   const { id } = req.params;
-  Horario.update(id, req.body, (err) => {
-    if (err) return res.status(500).json({ error: err.message || err });
-    res.status(200).json({ message: 'Horário atualizado com sucesso' });
-  });
+  try {
+    const horarioAtualizado = await Horario.update(id, req.body);
+    if (!horarioAtualizado) {
+      return res.status(404).json({ message: 'Horário não encontrado.' });
+    }
+    res.status(200).json({ message: 'Horário atualizado com sucesso', horario: horarioAtualizado });
+  } catch (err) {
+    console.error('Erro ao atualizar horário:', err);
+    res.status(500).json({ error: err.message || 'Erro ao atualizar horário.' });
+  }
 };
 
-exports.atualizarStatus = (req, res) => {
+exports.atualizarStatus = async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
-  Horario.updateStatus(id, status, (err) => {
-    if (err) return res.status(500).json({ error: err.message || err });
-    res.status(200).json({ message: 'Status atualizado com sucesso' });
-  });
+  try {
+    const horarioAtualizado = await Horario.updateStatus(id, status);
+    if (!horarioAtualizado) {
+      return res.status(404).json({ message: 'Horário não encontrado.' });
+    }
+    res.status(200).json({ message: 'Status atualizado com sucesso', horario: horarioAtualizado });
+  } catch (err) {
+    console.error('Erro ao atualizar status do horário:', err);
+    res.status(500).json({ error: err.message || 'Erro ao atualizar status do horário.' });
+  }
 };
 
-exports.deletar = (req, res) => {
+exports.deletar = async (req, res) => {
   const { id } = req.params;
-  Horario.delete(id, (err) => {
-    if (err) return res.status(500).json({ error: err.message || err });
+  try {
+    const horarioDeletado = await Horario.delete(id);
+    if (!horarioDeletado) {
+      return res.status(404).json({ message: 'Horário não encontrado.' });
+    }
     res.status(200).json({ message: 'Horário deletado com sucesso' });
-  });
+  } catch (err) {
+    console.error('Erro ao deletar horário:', err);
+    res.status(500).json({ error: err.message || 'Erro ao deletar horário.' });
+  }
 };
