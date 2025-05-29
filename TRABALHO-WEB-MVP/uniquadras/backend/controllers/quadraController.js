@@ -1,4 +1,5 @@
 const Quadra = require('../models/quadraModel');
+const Horario = require('../models/horarioModel'); // Importa o model de horários
 
 const quadraController = {
   async listar(req, res) {
@@ -25,8 +26,36 @@ const quadraController = {
   async criar(req, res) {
     try {
       const novaQuadra = await Quadra.create(req.body);
+
+      // Horários padrão
+      const horariosPadrao = [
+        "18:00 - 19:00",
+        "19:00 - 20:00",
+        "20:00 - 21:00",
+        "21:00 - 22:00",
+        "22:00 - 23:00"
+      ];
+
+      // Cria horários para datas futuras (ex: próximos 365 dias)
+      const hoje = new Date();
+      for (let i = 0; i < 365; i++) {
+        const data = new Date(hoje);
+        data.setDate(data.getDate() + i);
+        const dataFormatada = data.toISOString().split('T')[0];
+
+        for (const horario of horariosPadrao) {
+          await Horario.create({
+            id_quadra: novaQuadra.id,
+            data: dataFormatada,
+            horario: horario,
+            status: 'Disponível'
+          });
+        }
+      }
+
       res.status(201).json(novaQuadra);
     } catch (error) {
+      console.error("Erro ao criar quadra e gerar horários:", error);
       res.status(500).json({ error: 'Erro ao criar quadra.' });
     }
   },

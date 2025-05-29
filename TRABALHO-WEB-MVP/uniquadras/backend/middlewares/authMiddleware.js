@@ -1,3 +1,5 @@
+
+/*
 // middlewares/authMiddleware.js
 function verificarAutenticacao(req, res, next) {
   if (req.session && req.session.usuario) {
@@ -8,3 +10,4 @@ function verificarAutenticacao(req, res, next) {
 }
 
 module.exports = verificarAutenticacao;
+*/

@@ -10,14 +10,18 @@ app.use(express.static('backend'));
 app.use(cors());
 app.use(express.json());
 
+
+
 // Rotas
 const usuarioRoutes = require('./routes/usuarioRoutes');
 const quadraRoutes = require('./routes/quadraRoutes');
 const reservaRoutes = require('./routes/reservaRoutes');
+const horarioRoutes = require('./routes/horarioRoutes');
 
 app.use('/usuarios', usuarioRoutes);
 app.use('/quadras', quadraRoutes);
 app.use('/reservas', reservaRoutes);
+app.use('/horarios', horarioRoutes);
 
 app.get('/', (req, res) => {
   res.send('Servidor está rodando!');
