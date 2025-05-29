@@ -39,8 +39,9 @@
     <div class="container-fluid px-5">
       <h2 class="text-white mb-5 fs-1 text-center fw-bold">Painel do Administrador</h2>
 
-      <div class="d-flex justify-content-end mb-4">
+      <div class="d-flex justify-content-end mb-4 gap-2">
         <button class="btn btn-success" id="btnAdicionarNovaQuadra">Adicionar Nova Quadra</button>
+        <button class="btn btn-info" id="btnAddHorario">Adicionar Novo Horário</button>
       </div>
 
       <div class="bg-primary bg-opacity-75 text-white p-4 rounded-4 mx-auto" style="max-width: 1000px;">
@@ -57,16 +58,10 @@
       <div class="bg-primary bg-opacity-75 text-white px-4 py-4 rounded-4 mx-auto" style="max-width: 1000px;">
         <h3 class="mb-4 text-center">Quadro de Reservas (<span id="dataQuadroReservasTable"></span>)</h3>
         <div class="table-responsive">
-          <table class="table table-bordered text-center bg-white text-dark">
+          <table id="reservasTable" class="table table-bordered text-center bg-white text-dark">
             <thead class="table-primary">
               <tr>
-                <th>Quadra</th>
-                <th>18:00 - 19:00</th>
-                <th>19:00 - 20:00</th>
-                <th>20:00 - 21:00</th>
-                <th>21:00 - 22:00</th>
-                <th>22:00 - 23:00</th>
-              </tr>
+                </tr>
             </thead>
             <tbody id="tabelaReservasAdm">
               </tbody>
@@ -107,6 +102,43 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="modal fade" id="modalHorario" tabindex="-1" aria-labelledby="modalHorarioLabel" aria-hidden="true">
+          <div class="modal-dialog">
+              <div class="modal-content bg-dark text-white">
+                  <div class="modal-header">
+                      <h5 class="modal-title" id="modalHorarioLabel">Adicionar/Editar Horário</h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                      <form id="formHorario">
+                          <input type="hidden" id="horarioId">
+                          <div class="mb-3">
+                              <label for="modalHorarioQuadraSelect" class="form-label">Quadra</label>
+                              <select class="form-select" id="modalHorarioQuadraSelect" required>
+                                  </select>
+                          </div>
+                          <div class="mb-3">
+                              <label for="modalHorarioDataInput" class="form-label">Data</label>
+                              <input type="date" class="form-control" id="modalHorarioDataInput" required>
+                          </div>
+                          <div class="mb-3">
+                              <label for="modalHorarioHoraInput" class="form-label">Horário (ex: 18:00 - 19:00)</label>
+                              <input type="text" class="form-control" id="modalHorarioHoraInput" placeholder="HH:MM - HH:MM" required>
+                          </div>
+                          <div class="mb-3">
+                              <label for="modalHorarioStatusSelect" class="form-label">Status</label>
+                              <select class="form-select" id="modalHorarioStatusSelect" required>
+                                  <option value="Disponível">Disponível</option>
+                                  <option value="Indisponível">Indisponível</option>
+                              </select>
+                          </div>
+                          <button type="submit" class="btn btn-primary mt-3">Salvar Horário</button>
+                      </form>
+                  </div>
+              </div>
+          </div>
       </div>
 
       <div class="col-12 text-center mt-5">
