@@ -86,4 +86,72 @@ document.addEventListener("DOMContentLoaded", async function () {
       await carregarHorariosAdm(dataInputAdm.value); // Recarrega a tabela de horários
     });
   }
+
+  // const formUsuario = document.getElementById('formUsuario');
+  // const modalUsuario = new bootstrap.Modal(document.getElementById('modalUsuario'));
+  // const apiUsuarios = "http://localhost:3000/usuarios";
+
+  // async function carregarUsuarios() {
+  //   const resposta = await fetch(apiUsuarios);
+  //   const usuarios = await resposta.json();
+
+  //   const tabela = document.getElementById('tabelaUsuarios');
+  //   tabela.innerHTML = '';
+
+  //   usuarios.forEach(usuario => {
+  //     const linha = document.createElement('tr');
+  //     linha.innerHTML = `
+  //       <td>${usuario.id}</td>
+  //       <td>${usuario.nome}</td>
+  //       <td>${usuario.email}</td>
+  //       <td>${usuario.id_tipo_usuario === 2 ? 'Administrador' : 'Usuário'}</td>
+  //       <td>
+  //         <button class="btn btn-sm btn-warning" onclick='editarUsuario(${JSON.stringify(usuario)})'>Editar</button>
+  //       </td>
+  //     `;
+  //     tabela.appendChild(linha);
+  //   });
+  // }
+
+  // function editarUsuario(usuario) {
+  //   document.getElementById('usuarioIdInput').value = usuario.id;
+  //   document.getElementById('usuarioNomeInput').value = usuario.nome;
+  //   document.getElementById('usuarioEmailInput').value = usuario.email;
+  //   document.getElementById('usuarioTelefoneInput').value = usuario.telefone;
+    
+  // }
+
+  // if (formUsuario) {
+  //   formUsuario.addEventListener('submit', async (e) => {
+  //     e.preventDefault();
+
+  //     const data = {
+  //       id: document.getElementById('usuarioIdInput').value || undefined,
+  //       nome: document.getElementById('usuarioNomeInput').value,
+  //       email: document.getElementById('usuarioEmailInput').value,
+  //       telefone: document.getElementById('usuarioTelefoneInput').value,
+  //     };
+
+  //     if (data.id) {
+  //       // PUT para editar
+  //       await fetch(`${apiUsuarios}/${data.id}`, {
+  //         method: 'PUT',
+  //         headers: { 'Content-Type': 'application/json' },
+  //         body: JSON.stringify(data)
+  //       });
+  //     } else {
+  //       // POST para criar
+  //       await fetch(apiUsuarios, {
+  //         method: 'POST',
+  //         headers: { 'Content-Type': 'application/json' },
+  //         body: JSON.stringify(data)
+  //       });
+  //     }
+
+  //     await carregarUsuarios();
+  //     modalUsuario.hide();
+  //     formUsuario.reset();
+  //   });
+  // }
+
 });

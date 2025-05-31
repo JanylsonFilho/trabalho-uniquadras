@@ -57,7 +57,6 @@ const addUser = async (req, res) => {
   }
 };
 
-// dando erro
 const promoverUsuario = async (req, res) => {
   const { id } = req.params;
 
