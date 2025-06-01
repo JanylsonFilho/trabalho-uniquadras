@@ -7,10 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (usuarioLogado) {
     const nome = usuarioLogado.user.nome || 'Usuário';
+    const tipo = usuarioLogado.user.id_tipo_usuario;
+    console.log(tipo)
 
     const nomeUsuario = document.createElement('li');
     nomeUsuario.classList.add('nav-item');
-    nomeUsuario.innerHTML = `<a class="nav-link" href="#">${nome}</a>`;
+    nomeUsuario.innerHTML = `<a class="nav-link" href="#" id="linkPerfil">${nome}</a>`;
     console.log(usuarioLogado.user.nome)
 
     const logoutItem = document.createElement('li');
@@ -19,6 +21,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     navbar.appendChild(nomeUsuario);
     navbar.appendChild(logoutItem);
+
+    document.getElementById('linkPerfil').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (tipo === "2") {
+        window.location.href = '/painel-adm.html'; // Caminho para admins
+      } else {
+        window.location.href = '/minhas-reservas.html';  // Caminho para usuários comuns
+      }
+    });
 
     if (botaoLogin) botaoLogin.style.display = 'none';
 
