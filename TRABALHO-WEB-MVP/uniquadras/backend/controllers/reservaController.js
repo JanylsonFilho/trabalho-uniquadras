@@ -114,7 +114,7 @@ const reservaController = {
     try {
       const { id } = req.params;
       const result = await Reserva.query(`
-        SELECT r.*, q.nome as quadra_nome, h.data, h.horario
+        SELECT r.id, q.nome as quadra_nome, h.data, h.horario, r.criado_em
         FROM reservas r
         JOIN quadras q ON r.id_quadra = q.id
         JOIN horarios h ON r.id_horario = h.id

@@ -10,4 +10,4 @@ router.put('/:id', reservaController.atualizar);
 router.delete('/:id', reservaController.deletar);
 router.get('/usuario/:id', reservaController.listarPorUsuario);
 
-module.exports = router;
+module.exports = router;    
