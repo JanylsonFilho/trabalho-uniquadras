@@ -1,5 +1,6 @@
 const db = require('../config/db'); //
 
+
 const Horario = {
   // Novo método para buscar todos os horários de uma data específica (TODAS as quadras)
   async getAllByDate(data) { //

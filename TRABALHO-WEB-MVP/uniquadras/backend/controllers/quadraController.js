@@ -1,5 +1,7 @@
 const Quadra = require('../models/quadraModel');
 const Horario = require('../models/horarioModel'); // Importa o model de horários
+const pool = require('../config/db');
+
 
 const quadraController = {
   async listar(req, res) {
@@ -72,17 +74,29 @@ const quadraController = {
     }
   },
 
-  async deletar(req, res) {
-    try {
-      const quadraDeletada = await Quadra.delete(req.params.id);
-      if (!quadraDeletada) {
-        return res.status(404).json({ error: 'Quadra não encontrada.' });
-      }
-      res.json({ message: 'Quadra deletada com sucesso.' });
-    } catch (error) {
-      res.status(500).json({ error: 'Erro ao deletar quadra.' });
+async deletar(req, res) {
+  try {
+    const quadraId = req.params.id;
+
+    // 1. Remover reservas relacionadas aos horários dessa quadra
+    await pool.query(`
+      DELETE FROM reservas
+      WHERE id_horario IN (SELECT id FROM horarios WHERE id_quadra = $1)
+    `, [quadraId]);
+
+    // 2. Remover horários da quadra
+    await pool.query('DELETE FROM horarios WHERE id_quadra = $1', [quadraId]);
+
+    // 3. Remover a quadra
+    const quadraDeletada = await Quadra.delete(quadraId);
+    if (!quadraDeletada) {
+      return res.status(404).json({ error: 'Quadra não encontrada.' });
     }
-  },
+    res.json({ message: 'Quadra deletada com sucesso.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao deletar quadra.' });
+  }
+},
 };
 
 module.exports = quadraController;
