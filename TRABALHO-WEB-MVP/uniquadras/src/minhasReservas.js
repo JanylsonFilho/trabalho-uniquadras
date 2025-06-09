@@ -43,6 +43,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     return horario ? horario.horario : 'Horário não encontrado';
   }
 
+  function formatarHorario(horario) {
+    if (!horario) return '-';
+    return horario.length >= 5 ? horario.slice(0, 5) : horario;
+  }
+
   async function listarReservas() {
     try {
       const response = await fetch(`${apiReservas}?id_usuario=${usuarioId}`);
@@ -64,6 +69,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         card.className = "col-md-6 mb-4";
         console.log(reserva.data)
         
+        const dataFormatada = new Date(reserva.data).toLocaleDateString('pt-BR');
         card.innerHTML = /*html*/`
           <div class="card border-primary">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -74,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             </div>
             <div class="card-body text-dark">
               <h5 class="card-title text-dark">${nomeQuadra}</h5>
-              <p class="card-text text-dark"><strong>📅 Data:</strong> ${reserva.data}</p>
+              <p class="card-text text-dark"><strong>📅 Data:</strong> ${dataFormatada}</p>
               <p class="card-text text-dark"><strong>⏰ Horário:</strong> ${horario}</p>
             </div>
           </div>
