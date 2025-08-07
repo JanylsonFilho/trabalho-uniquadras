@@ -1,131 +1,103 @@
 const Reserva = require('../models/reservaModel');
-const Horario = require('../models/horarioModel'); // Importa o model de horários
+const Quadra = require('../models/quadraModel');
 
-const reservaController = {
-  async listar(req, res) {
-    try {
-      let query = `
-        SELECT r.*, q.nome as quadra_nome, q.tipo as quadra_tipo, h.data, h.horario
-        FROM reservas r
-        JOIN quadras q ON r.id_quadra = q.id
-        JOIN horarios h ON r.id_horario = h.id
-      `;
-      const params = [];
-      const conditions = [];
+// Lista reservas com base em filtros (data, quadra, usuário)
+const listar = async (req, res) => {
+  try {
+    const filtro = {};
+    if (req.query.data) filtro.data_reserva = req.query.data;
+    if (req.query.id_quadra) filtro.id_quadra = req.query.id_quadra;
+    if (req.query.id_usuario) filtro.id_usuario = req.query.id_usuario;
 
-      // Filtros opcionais
-      if (req.query.data) {
-        conditions.push(`h.data = $${params.length + 1}`);
-        params.push(req.query.data);
-      }
-      if (req.query.id_quadra) {
-        conditions.push(`r.id_quadra = $${params.length + 1}`);
-        params.push(req.query.id_quadra);
-      }
-      if (req.query.id_usuario) {
-        conditions.push(`r.id_usuario = $${params.length + 1}`);
-        params.push(req.query.id_usuario);
-      }
-      if (req.query.id_horario) {
-        conditions.push(`r.id_horario = $${params.length + 1}`);
-        params.push(req.query.id_horario);
-      }
-
-      if (conditions.length > 0) {
-        query += ` WHERE ${conditions.join(' AND ')}`;
-      }
-
-      const result = await Reserva.query(query, params);
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Erro ao listar reservas:', error);
-      res.status(500).json({ error: 'Erro ao listar reservas.' });
-    }
-  },
-
-  async obter(req, res) {
-    try {
-      const reserva = await Reserva.getById(req.params.id);
-      if (!reserva) {
-        return res.status(404).json({ error: 'Reserva não encontrada.' });
-      }
-      res.json(reserva);
-    } catch (error) {
-      res.status(500).json({ error: 'Erro ao obter reserva.' });
-    }
-  },
-
-  async criar(req, res) {
-    try {
-      const { id_usuario, id_quadra, id_horario } = req.body;
-
-      if (!id_usuario || !id_quadra || !id_horario) {
-        return res.status(400).json({ error: 'Todos os campos de reserva são obrigatórios.' });
-      }
-
-      // Checar conflito de horários (se já existe reserva para o mesmo id_horario)
-      const conflito = await Reserva.query(
-        'SELECT * FROM reservas WHERE id_horario = $1',
-        [id_horario]
-      );
-
-      if (conflito.rows.length > 0) {
-        return res.status(409).json({ error: 'Já existe uma reserva para este horário.' });
-      }
-
-      const novaReserva = await Reserva.create({ id_usuario, id_quadra, id_horario });
-      // Atualiza o status do horário para "Indisponível"
-      await Horario.updateStatus(id_horario, "Indisponível");
-      res.status(201).json(novaReserva);
-    } catch (error) {
-      console.error('Erro ao criar reserva:', error);
-      res.status(500).json({ error: 'Erro ao criar reserva.' });
-    }
-  },
-
-  async atualizar(req, res) {
-    try {
-      const reservaAtualizada = await Reserva.update(req.params.id, req.body);
-      if (!reservaAtualizada) {
-        return res.status(404).json({ error: 'Reserva não encontrada.' });
-      }
-      res.json(reservaAtualizada);
-    } catch (error) {
-      res.status(500).json({ error: 'Erro ao atualizar reserva.' });
-    }
-  },
-
-  async deletar(req, res) {
-    try {
-      const reservaDeletada = await Reserva.delete(req.params.id);
-      if (!reservaDeletada) {
-        return res.status(404).json({ error: 'Reserva não encontrada.' });
-      }
-      // Ao deletar, libera o horário
-      await Horario.updateStatus(reservaDeletada.id_horario, "Disponível");
-      res.json({ message: 'Reserva deletada com sucesso.' });
-    } catch (error) {
-      console.error('Erro ao deletar reserva:', error);
-      res.status(500).json({ error: 'Erro ao deletar reserva.' });
-    }
-  },
-
-  async listarPorUsuario(req, res) {
-    try {
-      const { id } = req.params;
-      const result = await Reserva.query(`
-        SELECT r.id, q.nome as quadra_nome, h.data, h.horario, r.criado_em
-        FROM reservas r
-        JOIN quadras q ON r.id_quadra = q.id
-        JOIN horarios h ON r.id_horario = h.id
-        WHERE r.id_usuario = $1
-      `, [id]);
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Erro ao listar reservas do usuário:', error);
-      res.status(500).json({ error: 'Erro ao listar reservas do usuário.' });
-    }
-  },
+    const reservas = await Reserva.find(filtro).populate('id_usuario', 'nome email');
+    res.json(reservas);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao listar reservas.' });
+  }
 };
 
-module.exports = reservaController;
+// Lista todas as reservas de um usuário específico
+const listarPorUsuario = async (req, res) => {
+    try {
+        const { id } = req.params; // ID do usuário
+        const reservas = await Reserva.find({ id_usuario: id }).sort({ criado_em: -1 });
+        res.json(reservas);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao listar reservas do usuário.' });
+    }
+};
+
+// Obtém uma reserva específica
+const obter = async (req, res) => {
+  try {
+    const reserva = await Reserva.findById(req.params.id);
+    if (!reserva) {
+      return res.status(404).json({ error: 'Reserva não encontrada.' });
+    }
+    res.json(reserva);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao obter reserva.' });
+  }
+};
+
+// Cria uma nova reserva
+const criar = async (req, res) => {
+  const { id_usuario, id_quadra, id_horario } = req.body;
+  try {
+    const quadra = await Quadra.findById(id_quadra);
+    if (!quadra) {
+      return res.status(404).json({ error: 'Quadra não encontrada.' });
+    }
+    const horario = quadra.horarios.id(id_horario);
+    if (!horario || horario.status === 'Indisponível') {
+      return res.status(409).json({ error: 'Este horário não está disponível.' });
+    }
+
+    horario.status = 'Indisponível';
+    await quadra.save();
+
+    const novaReserva = new Reserva({
+      id_usuario,
+      id_quadra,
+      id_horario,
+      data_reserva: horario.data,
+      horario_reserva: horario.horario,
+      nome_quadra: quadra.nome
+    });
+    await novaReserva.save();
+    res.status(201).json(novaReserva);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao criar reserva.' });
+  }
+};
+
+// Deleta uma reserva e libera o horário
+const deletar = async (req, res) => {
+  try {
+    const reservaDeletada = await Reserva.findByIdAndDelete(req.params.id);
+    if (!reservaDeletada) {
+      return res.status(404).json({ error: 'Reserva não encontrada.' });
+    }
+
+    // Libera o horário na quadra
+    const quadra = await Quadra.findById(reservaDeletada.id_quadra);
+    if (quadra) {
+      const horario = quadra.horarios.id(reservaDeletada.id_horario);
+      if (horario) {
+        horario.status = 'Disponível';
+        await quadra.save();
+      }
+    }
+    res.json({ message: 'Reserva deletada e horário liberado com sucesso.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao deletar reserva.' });
+  }
+};
+
+module.exports = {
+  listar,
+  listarPorUsuario,
+  obter,
+  criar,
+  deletar
+};

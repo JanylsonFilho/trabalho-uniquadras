@@ -1,71 +1,96 @@
-const Horario = require('../models/horarioModel'); //
+const Quadra = require('../models/quadraModel');
 
-// Lista horários por quadra e data, ou apenas por data
-exports.listarPorQuadraEData = async (req, res) => { //
-  const { id_quadra, data } = req.query; //
+// Lista horários de uma quadra em uma data específica
+const listarPorQuadraEData = async (req, res) => {
+  const { id_quadra, data } = req.query;
+  if (!id_quadra || !data) {
+    return res.status(400).json({ error: 'ID da quadra e data são obrigatórios.' });
+  }
   try {
-    let resultados; //
-    if (id_quadra) { //
-      resultados = await Horario.getAllByQuadraAndDate(id_quadra, data); // Busca por quadra e data
-    } else {
-      resultados = await Horario.getAllByDate(data); // Busca apenas por data (todas as quadras)
+    const quadra = await Quadra.findById(id_quadra);
+    if (!quadra) {
+      return res.status(404).json({ error: 'Quadra não encontrada.' });
     }
-    res.json(resultados); //
+    const horariosDoDia = quadra.horarios.filter(h => h.data === data);
+    res.json(horariosDoDia);
   } catch (err) {
-    console.error('Erro ao listar horários:', err); //
-    res.status(500).json({ error: err.message || 'Erro ao listar horários.' }); //
+    res.status(500).json({ error: 'Erro ao listar horários.' });
   }
 };
 
-exports.criar = async (req, res) => { //
+// Adiciona um novo horário a uma quadra
+const criar = async (req, res) => {
+  const { id_quadra, data, horario, status } = req.body;
   try {
-    const novoHorario = await Horario.create(req.body); //
-    res.status(201).json(novoHorario); //
+    const quadra = await Quadra.findById(id_quadra);
+    if (!quadra) {
+      return res.status(404).json({ error: 'Quadra não encontrada.' });
+    }
+    quadra.horarios.push({ data, horario, status });
+    await quadra.save();
+    res.status(201).json(quadra.horarios[quadra.horarios.length - 1]);
   } catch (err) {
-    console.error('Erro ao criar horário:', err); //
-    res.status(500).json({ error: err.message || 'Erro ao criar horário.' }); //
+    res.status(500).json({ error: 'Erro ao criar horário.' });
   }
 };
 
-exports.atualizar = async (req, res) => { //
-  const { id } = req.params; //
+// Atualiza um horário específico
+const atualizar = async (req, res) => {
+  const { id } = req.params; // ID do horário
+  const { horario, status } = req.body;
   try {
-    const horarioAtualizado = await Horario.update(id, req.body); //
-    if (!horarioAtualizado) { //
-      return res.status(404).json({ message: 'Horário não encontrado.' }); //
+    const quadra = await Quadra.findOne({ "horarios._id": id });
+    if (!quadra) {
+      return res.status(404).json({ message: 'Horário não encontrado.' });
     }
-    res.status(200).json({ message: 'Horário atualizado com sucesso', horario: horarioAtualizado }); //
+    const horarioSubDoc = quadra.horarios.id(id);
+    horarioSubDoc.horario = horario;
+    horarioSubDoc.status = status;
+    await quadra.save();
+    res.status(200).json({ message: 'Horário atualizado com sucesso', horario: horarioSubDoc });
   } catch (err) {
-    console.error('Erro ao atualizar horário:', err); //
-    res.status(500).json({ error: err.message || 'Erro ao atualizar horário.' }); //
+    res.status(500).json({ error: 'Erro ao atualizar horário.' });
   }
 };
 
-exports.atualizarStatus = async (req, res) => { //
-  const { id } = req.params; //
-  const { status } = req.body; //
+// Atualiza apenas o status de um horário
+const atualizarStatus = async (req, res) => {
+  const { id } = req.params; // ID do horário
+  const { status } = req.body;
   try {
-    const horarioAtualizado = await Horario.updateStatus(id, status); //
-    if (!horarioAtualizado) { //
-      return res.status(404).json({ message: 'Horário não encontrado.' }); //
+    const quadra = await Quadra.findOne({ "horarios._id": id });
+    if (!quadra) {
+      return res.status(404).json({ message: 'Horário não encontrado.' });
     }
-    res.status(200).json({ message: 'Status atualizado com sucesso', horario: horarioAtualizado }); //
+    const horarioSubDoc = quadra.horarios.id(id);
+    horarioSubDoc.status = status;
+    await quadra.save();
+    res.status(200).json({ message: 'Status atualizado com sucesso', horario: horarioSubDoc });
   } catch (err) {
-    console.error('Erro ao atualizar status do horário:', err); //
-    res.status(500).json({ error: err.message || 'Erro ao atualizar status do horário.' }); //
+    res.status(500).json({ error: 'Erro ao atualizar status do horário.' });
   }
 };
 
-exports.deletar = async (req, res) => { //
-  const { id } = req.params; //
-  try {
-    const horarioDeletado = await Horario.delete(id); //
-    if (!horarioDeletado) { //
-      return res.status(404).json({ message: 'Horário não encontrado.' }); //
+// Deleta um horário
+const deletar = async (req, res) => {
+    const { id } = req.params; // ID do horário
+    try {
+        const quadra = await Quadra.findOne({ "horarios._id": id });
+        if (!quadra) {
+            return res.status(404).json({ message: 'Horário não encontrado.' });
+        }
+        quadra.horarios.id(id).deleteOne(); // Novo método do Mongoose 8+
+        await quadra.save();
+        res.status(200).json({ message: 'Horário deletado com sucesso' });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao deletar horário.' });
     }
-    res.status(200).json({ message: 'Horário deletado com sucesso' }); //
-  } catch (err) {
-    console.error('Erro ao deletar horário:', err); //
-    res.status(500).json({ error: err.message || 'Erro ao deletar horário.' }); //
-  }
+};
+
+module.exports = {
+  listarPorQuadraEData,
+  criar,
+  atualizar,
+  atualizarStatus,
+  deletar,
 };

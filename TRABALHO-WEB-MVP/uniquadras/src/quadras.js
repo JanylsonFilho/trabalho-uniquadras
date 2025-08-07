@@ -1,3 +1,5 @@
+// src/quadras.js
+
 const apiQuadras = "http://localhost:3000/quadras";
 const listaQuadrasContainer = document.getElementById("listaQuadras");
 const btnAdicionarNovaQuadra = document.getElementById("btnAdicionarNovaQuadra");
@@ -8,6 +10,7 @@ const nomeQuadraModalInput = document.getElementById("nomeQuadraModal");
 const tipoQuadraModalSelect = document.getElementById("tipoQuadraModal");
 const statusQuadraModalSelect = document.getElementById("statusQuadraModal");
 
+// Renderiza a lista de quadras no painel ADM
 export async function renderizarListaQuadras() {
   try {
     const response = await fetch(apiQuadras);
@@ -32,10 +35,10 @@ export async function renderizarListaQuadras() {
               <p class="card-text">Status: ${quadra.status}</p>
             </div>
             <div class="d-flex justify-content-end mt-3">
-              <button class="btn btn-info btn-sm me-2 btn-editar-quadra" data-id="${quadra.id}">
+              <button class="btn btn-info btn-sm me-2 btn-editar-quadra" data-id="${quadra._id}">
                 <i class="bi bi-pencil-square"></i> Editar
               </button>
-              <button class="btn btn-danger btn-sm btn-remover-quadra" data-id="${quadra.id}">
+              <button class="btn btn-danger btn-sm btn-remover-quadra" data-id="${quadra._id}">
                 <i class="bi bi-trash"></i> Remover
               </button>
             </div>
@@ -44,20 +47,21 @@ export async function renderizarListaQuadras() {
       listaQuadrasContainer.appendChild(card);
     });
 
+    // Adiciona eventos usando o _id
     document.querySelectorAll('.btn-editar-quadra').forEach(btn => {
-      btn.addEventListener('click', (e) => preencherFormularioEdicao(e.target.closest('button').dataset.id));
+      btn.addEventListener('click', (e) => preencherFormularioEdicao(e.currentTarget.dataset.id));
     });
 
     document.querySelectorAll('.btn-remover-quadra').forEach(btn => {
-      btn.addEventListener('click', (e) => removerQuadra(e.target.closest('button').dataset.id));
+      btn.addEventListener('click', (e) => removerQuadra(e.currentTarget.dataset.id));
     });
 
   } catch (error) {
-    alert("Erro ao carregar lista de quadras.");
-    console.error(error);
+    alert("Erro ao carregar lista de quadras: " + error.message);
   }
 }
 
+// Adiciona ou edita uma quadra
 export async function adicionarOuEditarQuadra(data) {
   try {
     const metodo = data.id ? "PUT" : "POST";
@@ -69,50 +73,53 @@ export async function adicionarOuEditarQuadra(data) {
       body: JSON.stringify(data),
     });
 
-    if (!response.ok) throw await response.json();
+    if (!response.ok) throw new Error((await response.json()).error);
     alert("Quadra salva com sucesso!");
     modalQuadra.hide();
     renderizarListaQuadras();
   } catch (err) {
-    alert("Erro ao salvar quadra: " + (err.error || err.message));
+    alert("Erro ao salvar quadra: " + err.message);
   }
 }
 
+// Remove uma quadra pelo seu _id
 export async function removerQuadra(id) {
-  if (!confirm("Deseja realmente remover esta quadra?")) return;
+  if (!confirm("Deseja realmente remover esta quadra e todas as suas reservas associadas?")) return;
 
   try {
     const response = await fetch(`${apiQuadras}/${id}`, { method: "DELETE" });
-    if (!response.ok) throw await response.json();
+    if (!response.ok) throw new Error((await response.json()).error);
     alert("Quadra removida com sucesso!");
     renderizarListaQuadras();
   } catch (err) {
-    alert("Erro ao remover quadra: " + (err.error || err.message));
+    alert("Erro ao remover quadra: " + err.message);
   }
 }
 
+// Busca dados de uma quadra para preencher o formulário de edição
 export async function preencherFormularioEdicao(id) {
   try {
     const response = await fetch(`${apiQuadras}/${id}`);
     if (!response.ok) throw new Error("Quadra não encontrada");
     const quadra = await response.json();
 
-    quadraIdInput.value = quadra.id;
+    quadraIdInput.value = quadra._id;
     nomeQuadraModalInput.value = quadra.nome;
     tipoQuadraModalSelect.value = quadra.tipo;
     statusQuadraModalSelect.value = quadra.status;
 
     modalQuadra.show();
   } catch (err) {
-    alert("Erro ao carregar dados da quadra para edição: " + err.message);
+    alert("Erro ao carregar dados da quadra: " + err.message);
   }
 }
 
+// Inicializa o formulário de quadra (criação/edição)
 export function inicializarFormularioQuadra() {
   formQuadra.addEventListener("submit", async (e) => {
     e.preventDefault();
     const data = {
-      id: quadraIdInput.value || undefined,
+      id: quadraIdInput.value || null, // Envia o _id para edição
       nome: nomeQuadraModalInput.value,
       tipo: tipoQuadraModalSelect.value,
       status: statusQuadraModalSelect.value,

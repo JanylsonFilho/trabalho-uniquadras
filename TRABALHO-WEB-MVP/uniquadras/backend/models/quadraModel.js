@@ -1,38 +1,17 @@
-const pool = require('../config/db');
+const mongoose = require('mongoose');
 
-const Quadra = {
-  async getAll() {
-    const result = await pool.query('SELECT * FROM quadras');
-    return result.rows;
-  },
+// Schema para os horários, que serão subdocumentos dentro de cada quadra
+const HorarioSchema = new mongoose.Schema({
+  data: { type: String, required: true }, // Formato 'YYYY-MM-DD' para facilitar a busca
+  horario: { type: String, required: true }, // Ex: "18:00 - 19:00"
+  status: { type: String, enum: ['Disponível', 'Indisponível'], default: 'Disponível' }
+});
 
-  async getById(id) {
-    const result = await pool.query('SELECT * FROM quadras WHERE id = $1', [id]);
-    return result.rows[0];
-  },
+const QuadraSchema = new mongoose.Schema({
+  nome: { type: String, required: true, unique: true },
+  tipo: { type: String, enum: ['Aberta', 'Fechada'], required: true },
+  status: { type: String, enum: ['Ativa', 'Inativa'], default: 'Ativa' },
+  horarios: [HorarioSchema] // Array de horários
+});
 
-  async create(data) {
-    const { nome, tipo, status } = data;
-    const result = await pool.query(
-      'INSERT INTO quadras (nome, tipo, status) VALUES ($1, $2, $3) RETURNING *',
-      [nome, tipo, status]
-    );
-    return result.rows[0];
-  },
-
-  async update(id, data) {
-    const { nome, tipo, status } = data;
-    const result = await pool.query(
-      'UPDATE quadras SET nome = $1, tipo = $2, status = $3 WHERE id = $4 RETURNING *',
-      [nome, tipo, status, id]
-    );
-    return result.rows[0];
-  },
-
-  async delete(id) {
-    const result = await pool.query('DELETE FROM quadras WHERE id = $1 RETURNING *', [id]);
-    return result.rows[0];
-  },
-};
-
-module.exports = Quadra;
+module.exports = mongoose.model('Quadra', QuadraSchema);

@@ -1,54 +1,28 @@
-
-const pool = require('../config/db');
+const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const getAllUsers = async () => {
-  const result = await pool.query('SELECT * FROM usuarios');
-  return result.rows;
-};
+const UsuarioSchema = new mongoose.Schema({
+  nome: { type: String, required: true },
+  email: { type: String, required: true, unique: true, lowercase: true },
+  senha: { type: String, required: true },
+  telefone: { type: String, required: true },
+  data_cadastro: { type: Date, default: Date.now },
+  id_tipo_usuario: { type: String, enum: ['1', '2'], default: '1' } // 1: Usuário, 2: ADM
+});
 
-const getByEmail = async (email) => {
-  const result = await pool.query(
-    'SELECT * FROM usuarios WHERE email = $1',
-    [email]
-  );
-  return result.rows[0];
-};
+// Middleware (hook) para criptografar a senha antes de salvar um novo usuário
+UsuarioSchema.pre('save', async function(next) {
+  // Executa o hash apenas se a senha foi modificada (ou é nova)
+  if (!this.isModified('senha')) {
+    return next();
+  }
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.senha = await bcrypt.hash(this.senha, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
-const createUser = async (userData) => {
-  const { nome, email, senha, telefone} = userData;
-  const saltRounds = 10;
-  const senhaCriptografada = await bcrypt.hash(senha, saltRounds);
-  const dataCadastro = new Date();
-  const id_tipo_usuario = 1
-
-  const result = await pool.query(
-    'INSERT INTO usuarios (nome, email, senha, telefone, data_cadastro, id_tipo_usuario) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-    [nome, email, senhaCriptografada, telefone, dataCadastro, id_tipo_usuario]
-  );
-  return result.rows[0];
-};
-
-const promoteADM = async (id) => {
-  const result = await pool.query(
-    'UPDATE usuarios SET id_tipo_usuario = $1 WHERE id = $2 RETURNING *',
-    [2, id]
-  );
-  return result.rows[0];
-};
-
-const demoteADM = async (id) => {
-  const result = await pool.query(
-    'UPDATE usuarios SET id_tipo_usuario = $1 WHERE id = $2 RETURNING *',
-    [1, id]
-  );
-  return result.rows[0];
-};
-
-module.exports = {
-  getAllUsers,
-  getByEmail,
-  createUser,
-  promoteADM,
-  demoteADM,
-};
+module.exports = mongoose.model('Usuario', UsuarioSchema);

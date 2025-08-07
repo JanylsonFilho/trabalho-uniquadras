@@ -1,15 +1,16 @@
+// src/minhasReservas.js
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 document.addEventListener("DOMContentLoaded", async function () {
   const apiReservas = "http://localhost:3000/reservas";
-  const apiQuadras = "http://localhost:3000/quadras";
-  const apiHorarios = "http://localhost:3000/horarios";
   const listaReservas = document.getElementById("listaReservas");
 
   const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
-  const usuarioId = usuarioLogado?.user?.id || usuarioLogado?.id;
+  // O ID do usuário agora é `_id` no MongoDB
+  const usuarioId = usuarioLogado?.user?._id;
 
   if (!usuarioId) {
     alert("Você precisa estar logado para ver suas reservas.");
@@ -17,104 +18,79 @@ document.addEventListener("DOMContentLoaded", async function () {
     return;
   }
 
-  let quadras = [];
-  let horarios = [];
-
-  async function carregarDados() {
-    try {
-      const [quadrasRes, horariosRes] = await Promise.all([
-        fetch(apiQuadras),
-        fetch(apiHorarios)
-      ]);
-      quadras = await quadrasRes.json();
-      horarios = await horariosRes.json();
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-    }
-  }
-
-  function obterNomeQuadra(idQuadra) {
-    const quadra = quadras.find(q => q.id == idQuadra);
-    return quadra ? quadra.nome : 'Quadra não encontrada';
-  }
-
-  function obterHorario(idHorario) {
-    const horario = horarios.find(h => h.id == idHorario);
-    return horario ? horario.horario : 'Horário não encontrado';
-  }
-
-  function formatarHorario(horario) {
-    if (!horario) return '-';
-    return horario.length >= 5 ? horario.slice(0, 5) : horario;
-  }
-
   async function listarReservas() {
     try {
-      const response = await fetch(`${apiReservas}?id_usuario=${usuarioId}`);
-      if (!response.ok) throw new Error("Erro ao buscar reservas");
+      // A rota para buscar reservas por usuário agora é um endpoint específico
+      const response = await fetch(`${apiReservas}/usuario/${usuarioId}`);
+      if (!response.ok) throw new Error("Erro ao buscar suas reservas");
 
       const reservas = await response.json();
 
       if (reservas.length === 0) {
-        listaReservas.innerHTML = `<p class="text-muted">Você ainda não fez nenhuma reserva.</p>`;
+        listaReservas.innerHTML = `<p class="text-white-50">Você ainda não fez nenhuma reserva.</p>`;
         return;
       }
 
       listaReservas.innerHTML = "";
 
+      // Ordena as reservas da mais recente para a mais antiga
+      reservas.sort((a, b) => new Date(b.data_reserva) - new Date(a.data_reserva));
+
       reservas.forEach(reserva => {
-        const nomeQuadra = obterNomeQuadra(reserva.id_quadra);
-        const horario = obterHorario(reserva.id_horario);
         const card = document.createElement("div");
         card.className = "col-md-6 mb-4";
-        console.log(reserva.data)
         
-        const dataFormatada = new Date(reserva.data).toLocaleDateString('pt-BR');
+        // Formata a data que vem no formato 'YYYY-MM-DD'
+        const dataObj = new Date(reserva.data_reserva + 'T00:00:00');
+        const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+        
         card.innerHTML = /*html*/`
-          <div class="card border-primary">
+          <div class="card border-primary h-100">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-              <span>Reserva nº ${reserva.id}</span>
-              <button class="btn btn-sm btn-danger" data-id="${reserva.id}">
+              <span>Reserva ID: ${reserva._id.slice(-6)}</span>
+              <button class="btn btn-sm btn-danger btn-cancelar" data-id="${reserva._id}">
                 <i class="bi bi-x-circle"></i> Cancelar
               </button>
             </div>
             <div class="card-body text-dark">
-              <h5 class="card-title text-dark">${nomeQuadra}</h5>
-              <p class="card-text text-dark"><strong>📅 Data:</strong> ${dataFormatada}</p>
-              <p class="card-text text-dark"><strong>⏰ Horário:</strong> ${horario}</p>
+              <h5 class="card-title text-dark">${reserva.nome_quadra}</h5>
+              <p class="card-text mb-1"><strong>📅 Data:</strong> ${dataFormatada}</p>
+              <p class="card-text"><strong>⏰ Horário:</strong> ${reserva.horario_reserva}</p>
+            </div>
+            <div class="card-footer text-muted">
+              Feita em: ${new Date(reserva.criado_em).toLocaleString('pt-BR')}
             </div>
           </div>
         `;
-        console.log(nomeQuadra)
 
-        // Evento para botão de cancelar
-        card.querySelector('button').addEventListener('click', async () => {
-          const confirmacao = confirm("Tem certeza que deseja cancelar esta reserva?");
-          if (!confirmacao) return;
+        listaReservas.appendChild(card);
+      });
+
+      // Adiciona eventos aos botões de cancelar
+      document.querySelectorAll('.btn-cancelar').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const reservaId = e.currentTarget.dataset.id;
+          if (!confirm("Tem certeza que deseja cancelar esta reserva?")) return;
 
           try {
-            const resp = await fetch(`${apiReservas}/${reserva.id}`, {
-              method: 'DELETE'
-            });
-
-            if (!resp.ok) throw new Error("Erro ao cancelar reserva");
-
+            const resp = await fetch(`${apiReservas}/${reservaId}`, { method: 'DELETE' });
+            if (!resp.ok) {
+                const err = await resp.json();
+                throw new Error(err.error || "Erro ao cancelar reserva");
+            }
             alert("Reserva cancelada com sucesso!");
             listarReservas(); // Atualiza a lista
           } catch (error) {
             alert("Erro ao cancelar: " + error.message);
           }
         });
-
-        listaReservas.appendChild(card);
       });
 
     } catch (error) {
       console.error("Erro ao buscar reservas:", error);
-      listaReservas.innerHTML = `<p class="text-danger">Erro ao carregar reservas.</p>`;
+      listaReservas.innerHTML = `<p class="text-danger">Erro ao carregar suas reservas.</p>`;
     }
   }
 
-  await carregarDados();
   await listarReservas();
 });

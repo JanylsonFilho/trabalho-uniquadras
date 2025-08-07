@@ -6,7 +6,7 @@ const reservaController = require('../controllers/reservaController');
 router.get('/', reservaController.listar);
 router.get('/:id', reservaController.obter);
 router.post('/', reservaController.criar);
-router.put('/:id', reservaController.atualizar);
+//router.put('/:id', reservaController.atualizar);
 router.delete('/:id', reservaController.deletar);
 router.get('/usuario/:id', reservaController.listarPorUsuario);
 

@@ -1,4 +1,4 @@
-// src/reservas.js - Integração com backend para reservas (ajustado para usar id_horario)
+// src/reservas.js
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
@@ -13,11 +13,10 @@ document.addEventListener("DOMContentLoaded", async function () {
   const reservaForm = document.getElementById('reservaForm');
 
   const apiQuadras = "http://localhost:3000/quadras";
+  const apiHorarios = "http://localhost:3000/horarios"; // Rota para buscar horários de uma quadra
   const apiReservas = "http://localhost:3000/reservas";
-  const apiHorarios = "http://localhost:3000/horarios";
 
   let todasQuadras = [];
-  let horariosDisponiveis = [];
 
   async function carregarTodasQuadras() {
     try {
@@ -26,7 +25,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       todasQuadras = await response.json();
     } catch (error) {
       console.error('Erro ao carregar quadras:', error);
-      alert('Erro ao carregar quadras disponíveis.');
     }
   }
 
@@ -35,17 +33,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     quadraSelect.innerHTML = '<option value="">Selecione</option>';
 
     const quadrasFiltradas = todasQuadras.filter(q => q.tipo === tipoSelecionado && q.status === 'Ativa');
-    if (quadrasFiltradas.length > 0) {
-      quadrasFiltradas.forEach(quadra => {
-        const option = document.createElement('option');
-        option.value = quadra.id;
-        option.textContent = quadra.nome;
-        quadraSelect.appendChild(option);
-      });
-    } else {
-      quadraSelect.innerHTML = '<option value="">Nenhuma quadra disponível para este tipo</option>';
-    }
-    horarioSelect.innerHTML = '<option value="">Selecione a data e a quadra primeiro</option>';
+    quadrasFiltradas.forEach(quadra => {
+      const option = document.createElement('option');
+      option.value = quadra._id; // Usar _id do MongoDB
+      option.textContent = quadra.nome;
+      quadraSelect.appendChild(option);
+    });
+    horarioSelect.innerHTML = '<option value="">Selecione a data e a quadra</option>';
   }
 
   const esportesPorQuadraTipo = {
@@ -70,26 +64,21 @@ document.addEventListener("DOMContentLoaded", async function () {
   async function atualizarHorariosDisponiveis() {
     const dataSelecionada = dataInput.value;
     const quadraIdSelecionada = quadraSelect.value;
-    horarioSelect.innerHTML = '<option value="">Selecione</option>';
-    horariosDisponiveis = [];
+    horarioSelect.innerHTML = '<option value="">Carregando...</option>';
 
     if (!dataSelecionada || !quadraIdSelecionada) {
-      horarioSelect.innerHTML = '<option value="">Selecione a data e a quadra primeiro</option>';
+      horarioSelect.innerHTML = '<option value="">Selecione a data e a quadra</option>';
       return;
     }
 
     try {
-      const response = await fetch(`${apiHorarios}?data=${dataSelecionada}&id_quadra=${quadraIdSelecionada}`);
-      if (!response.ok) throw new Error('Erro ao buscar horários disponíveis.');
-      const horariosObj = await response.json();
-      const horarios = Array.isArray(horariosObj) ? horariosObj : horariosObj.rows || [];
-      console.log("Horários recebidos:", horarios);
-      horariosDisponiveis = horarios.filter(h => h.status === "Disponível");
+      const response = await fetch(`${apiHorarios}?id_quadra=${quadraIdSelecionada}&data=${dataSelecionada}`);
+      if (!response.ok) throw new Error('Erro ao buscar horários.');
       
-
-      // Filtra apenas horários disponíveis
-      horariosDisponiveis = horarios.filter(h => h.status === "Disponível");
-
+      const horarios = await response.json();
+      const horariosDisponiveis = horarios.filter(h => h.status === "Disponível");
+      
+      horarioSelect.innerHTML = '<option value="">Selecione</option>';
       if (horariosDisponiveis.length === 0) {
         horarioSelect.innerHTML = '<option value="">Nenhum horário disponível</option>';
         return;
@@ -97,12 +86,12 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       horariosDisponiveis.forEach(horario => {
         const option = document.createElement('option');
-        option.value = horario.id; // Agora value é o id do horário!
+        option.value = horario._id; // Usar _id do subdocumento de horário
         option.textContent = horario.horario;
         horarioSelect.appendChild(option);
       });
     } catch (error) {
-      console.error('Erro ao obter horários disponíveis:', error);
+      console.error('Erro ao obter horários:', error);
       horarioSelect.innerHTML = '<option value="">Erro ao carregar horários</option>';
     }
   }
@@ -115,31 +104,27 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     const idQuadra = quadraSelect.value;
     const esporte = esporteSelect.value;
-    const data = dataInput.value;
     const idHorario = horarioSelect.value;
 
-  const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
-  const usuarioId = usuarioLogado?.user?.id || usuarioLogado?.id;
-  if (!usuarioId) {
-    alert("Você precisa estar logado para fazer uma reserva.");
-    window.location.href = "login.html";
-    return;
-  }
+    const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+    const usuarioId = usuarioLogado?.user?._id;
 
-    if (!idQuadra || !esporte || !data || !idHorario) {
+    if (!usuarioId) {
+      alert("Você precisa estar logado para fazer uma reserva.");
+      window.location.href = "login.html";
+      return;
+    }
+    if (!idQuadra || !esporte || !idHorario) {
       alert('Por favor, preencha todos os campos!');
       return;
     }
-
-    const quadraReservada = todasQuadras.find(q => q.id == idQuadra);
-    const horarioSelecionado = horariosDisponiveis.find(h => h.id == idHorario);
 
     try {
       const response = await fetch(apiReservas, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id_usuario: usuarioLogado.user.id,
+          id_usuario: usuarioId,
           id_quadra: idQuadra,
           id_horario: idHorario
         })
@@ -150,13 +135,14 @@ document.addEventListener("DOMContentLoaded", async function () {
         throw new Error(errorData.error || 'Erro ao criar reserva');
       }
 
-      const reserva = await response.json();
-      alert(`✅ Reserva confirmada!\n🟢 Quadra: ${quadraReservada ? quadraReservada.nome : 'N/A'}\n🏅 Esporte: ${esporte}\n📅 Data: ${data}\n⏰ Horário: ${horarioSelecionado ? horarioSelecionado.horario : ''}`);
-      atualizarHorariosDisponiveis();
+      alert(`✅ Reserva confirmada com sucesso!`);
+      atualizarHorariosDisponiveis(); // Recarrega os horários
     } catch (error) {
       alert('Erro ao criar reserva: ' + error.message);
     }
   });
 
   await carregarTodasQuadras();
+  // Define a data de hoje como padrão
+  dataInput.value = new Date().toISOString().split("T")[0];
 });
