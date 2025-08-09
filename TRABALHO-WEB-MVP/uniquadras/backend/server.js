@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const connectDB = require('./config/db');
-
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc')
 // Conecta ao banco de dados
 connectDB();
 
@@ -11,6 +12,27 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// Configuração do Swagger JSDoc
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'UniQuadras API',
+      version: '1.0.0',
+      description: 'API para gerenciamento de quadras esportivas e reservas',
+    },
+    servers:[
+      {
+        url: `http://localhost:3000`,
+      },
+    ],
+  },
+  apis: ['./routes/*.js'], // Caminho para os arquivos de rota
+};
+
+const swaggerDocs =swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Rotas
 const usuarioRoutes = require('./routes/usuarioRoutes');
